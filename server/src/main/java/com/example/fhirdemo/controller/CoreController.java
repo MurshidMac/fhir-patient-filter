@@ -12,19 +12,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @RestController
-@RequestMapping("/sample")
-public class SampleController {
+@RequestMapping("/core")
+public class CoreController {
+
+    private final FhirDataService dataService;
 
     @Autowired
-    private FhirDataService dataService;
+    public CoreController(FhirDataService dataService) {
+        this.dataService = dataService;
+    }
 
-    @GetMapping
+    @GetMapping("/restock")
     public ResponseEntity populate() {
         try {
             dataService.populate();
             return ResponseEntity.ok().build();
-        } catch (FHIRException  e) {
-            Logger.getLogger("SampleController").log(Level.SEVERE, e.getMessage());
+        } catch (FHIRException e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

@@ -13,30 +13,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Stack;
+
 @Service
 public class FhirDataService {
 
-    private FhirContext fhirContext = FhirContext.forDstu3();
-
     public static final String TMPDIR = "/tmp/tmp.8T0q0MhsOD";
-
+    private final PatientRepository patientRepository;
+    private final ObservationRepository observationRepository;
+    private final EncounterRepository encounterRepository;
+    private FhirContext fhirContext = FhirContext.forDstu3();
     @Value("${fhir.server.url}")
     private String server;
-
     @Value("${fhir.data.patients.count}")
     private int patientCount;
-
     @Value("${fhir.data.encounters.count}")
     private int encounterCount;
-
     @Value("${fhir.data.observations.count}")
     private int observationCount;
-
-    private final PatientRepository patientRepository;
-
-    private final ObservationRepository observationRepository;
-
-    private final EncounterRepository encounterRepository;
 
     @Autowired
     public FhirDataService(PatientRepository patientRepository, ObservationRepository observationRepository, EncounterRepository encounterRepository) {
@@ -45,6 +39,10 @@ public class FhirDataService {
         this.encounterRepository = encounterRepository;
     }
 
+    /**
+     * Re-stock the database with FHIR DSTU3 values from the supplied server
+     * @throws FHIRException
+     */
     public void populate() throws FHIRException {
         Bundle patients;
         IGenericClient client = fhirContext.newRestfulGenericClient(server);
@@ -60,6 +58,7 @@ public class FhirDataService {
                     new com.example.fhirdemo.model.Patient(
                             fhirPatient.getIdElement().getIdPart(),
                             fhirPatient.getId(),
+                            fhirPatient.getNameFirstRep().getNameAsSingleString(),
                             fhirPatient.getActive(),
                             fhirPatient.getGender(),
                             fhirPatient.getBirthDate(),
@@ -75,49 +74,71 @@ public class FhirDataService {
             patientRepository.save(patient);
         }
 
-        patientRepository.findAll().forEach(patient -> {
-            // Retrieve encounters based on the patients
-            Bundle encounterBundle =
-                    getData(client, encounterCount, Encounter.class, Encounter.PATIENT.hasId(patient.getFullId()));
-            for (Bundle.BundleEntryComponent entry :
-                    encounterBundle.getEntry()) {
-                Encounter fhirEncounter = (Encounter) entry.getResource();
-                com.example.fhirdemo.model.Encounter encounter =
-                        new com.example.fhirdemo.model.Encounter(
-                                fhirEncounter.getIdElement().getIdPart(),
-                                fhirEncounter.getId(),
-                                fhirEncounter.getStatus(),
-                                fhirEncounter.getTypeFirstRep().getText(),
-                                fhirEncounter.getPeriod().getStart(),
-                                fhirEncounter.getReasonFirstRep().getText()
-                        );
-                encounter.setPatient(patient);
-                encounterRepository.save(encounter);
+        // Retrieve encounters for each patient
+        Bundle encounterBundle = getData(client, encounterCount * patientCount, Encounter.class, null);
+        int counter = 1;
+        Iterable<com.example.fhirdemo.model.Patient> allPatients = patientRepository.findAll();
+        Stack<com.example.fhirdemo.model.Patient> patientStack = new Stack<>();
+        allPatients.forEach(patientStack::push);
+        for (Bundle.BundleEntryComponent entryComponent : encounterBundle.getEntry()) {
+            Encounter fhirEncounter = (Encounter) entryComponent.getResource();
+            com.example.fhirdemo.model.Encounter encounter =
+                    new com.example.fhirdemo.model.Encounter(
+                            fhirEncounter.getIdElement().getIdPart(),
+                            fhirEncounter.getId(),
+                            fhirEncounter.getStatus(),
+                            fhirEncounter.getTypeFirstRep().getText(),
+                            fhirEncounter.getPeriod().getStart(),
+                            fhirEncounter.getReasonFirstRep().getText()
+                    );
+            encounter.setPatient(patientStack.peek());
+            encounterRepository.save(encounter);
+            counter++;
+            if (counter >= 10) {
+                counter = 0;
+                if (patientStack.size() > 1) patientStack.pop();
             }
+        }
 
-        });
-
-        // Retrieve observations based on the patients
-        for (com.example.fhirdemo.model.Encounter encounter : encounterRepository.findAll()) {
-            Bundle observationBundle =
-                    getData(client, observationCount, Observation.class, Observation.ENCOUNTER.hasId(encounter.getFullId()));
-            for (Bundle.BundleEntryComponent entry :
-                    observationBundle.getEntry()) {
-                Observation fhirObservation = (Observation) entry.getResource();
-                com.example.fhirdemo.model.Observation observation =
-                        new com.example.fhirdemo.model.Observation(
-                                fhirObservation.getIdElement().getIdPart(),
-                                fhirObservation.getId(),
-                                fhirObservation.getStatus(),
-                                fhirObservation.getEffectivePeriod().getStart()
-                        );
-                observation.setEncounter(encounter);
-                observationRepository.save(observation);
+        // Retrieve observations for each encounter
+        Bundle observationBundle = getData(client, observationCount * encounterCount * patientCount, Observation.class, null);
+        counter = 1;
+        Iterable<com.example.fhirdemo.model.Encounter> allEncounters = encounterRepository.findAll();
+        Stack<com.example.fhirdemo.model.Encounter> encounterStack = new Stack<>();
+        allEncounters.forEach(encounterStack::push);
+        for (Bundle.BundleEntryComponent entryComponent : observationBundle.getEntry()) {
+            Observation fhirObservation = (Observation) entryComponent.getResource();
+            com.example.fhirdemo.model.Observation observation =
+                    new com.example.fhirdemo.model.Observation(
+                            fhirObservation.getIdElement().getIdPart(),
+                            fhirObservation.getId(),
+                            fhirObservation.getStatus(),
+                            null
+                    );
+            if (fhirObservation.getEffective() instanceof Period) {
+                observation.setEffectiveStartPeriod(fhirObservation.getEffectivePeriod().getStart());
+            } else {
+                observation.setEffectiveStartPeriod(fhirObservation.getEffectiveDateTimeType().getValue());
+            }
+            observation.setEncounter(encounterStack.peek());
+            observationRepository.save(observation);
+            counter++;
+            if (counter >= 10) {
+                counter = 0;
+                if (encounterStack.size() > 1) encounterStack.pop();
             }
         }
 
     }
 
+    /**
+     * Get a bundle of data of the given type matching the criteria and count.
+     * @param client Client object used to execute the query
+     * @param count No. of entries in the bundle
+     * @param type Type of resource to retrieve and return
+     * @param criterion Criteria to retrieve the data
+     * @return bundle of resources of type.
+     */
     public Bundle getData(IGenericClient client, int count, Class<? extends DomainResource> type, ICriterion criterion) {
         IQuery<Bundle> query = client.search().forResource(type)
                 .count(count)

@@ -18,6 +18,7 @@ public class Patient implements Serializable {
     private String id;
     @NotNull
     private String fullId;
+    private String name;
     @NotNull
     private Boolean active;
     @Enumerated(EnumType.STRING)
@@ -38,9 +39,10 @@ public class Patient implements Serializable {
         this.id = id;
     }
 
-    public Patient(@NotNull String id, @NotNull String fullId, @NotNull Boolean active, Enumerations.AdministrativeGender gender, @NotNull Date birthDate, @NotNull Boolean deceased, Date deceasedOn) {
+    public Patient(@NotNull String id, @NotNull String fullId, String name, @NotNull Boolean active, Enumerations.AdministrativeGender gender, @NotNull Date birthDate, @NotNull Boolean deceased, Date deceasedOn) {
         this.id = id;
         this.fullId = fullId;
+        this.name = name;
         this.active = active;
         this.gender = gender;
         this.birthDate = birthDate;
@@ -62,6 +64,14 @@ public class Patient implements Serializable {
 
     public void setFullId(String fullId) {
         this.fullId = fullId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Boolean getActive() {

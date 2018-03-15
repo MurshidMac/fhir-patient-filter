@@ -24,7 +24,6 @@ public class Encounter implements Serializable {
     @NotNull
     @Temporal(TemporalType.TIMESTAMP)
     private Date startPeriod;
-    @NotNull
     private String reason;
     @JoinColumn(name = "patient", referencedColumnName = "id")
     @ManyToOne(optional = false)
