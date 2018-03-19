@@ -1,0 +1,40 @@
+.container .header {
+  /* display: flex; */
+  padding: 1em;
+}
+
+.close-icon {
+  font-size: 1.5em;
+}
+
+.header-field {
+  padding-left: 3em;
+}
+
+.header button {
+  margin-left: 1.5em;
+}
+
+.wide-dropdown {
+  width: 70vw;
+}
+
+.wide-dropdown.observation-dropdown {
+  width: 40vw;
+}
+
+.mat-list {
+  display: inline-flex;
+  height: 100%;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mat-column-deceasedOn {
+  display: inline-flex;
+  justify-content: center;
+}
+
+.encounter-label, .observation-label {
+  border: 0
+}

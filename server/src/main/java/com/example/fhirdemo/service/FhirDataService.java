@@ -18,7 +18,6 @@ import java.util.Stack;
 @Service
 public class FhirDataService {
 
-    public static final String TMPDIR = "/tmp/tmp.8T0q0MhsOD";
     private final PatientRepository patientRepository;
     private final ObservationRepository observationRepository;
     private final EncounterRepository encounterRepository;
