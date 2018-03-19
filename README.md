@@ -7,6 +7,7 @@
 ##### For UI
  - `cd` to `frontend` and run
 ```
+npm install
 npm start
 ```
 
@@ -15,6 +16,8 @@ npm start
 ```
 mvn spring-boot:run
 ```
+
+Finally access the project by navigating to *localhost:4200* from your browser.
 
 __Note:__
 
