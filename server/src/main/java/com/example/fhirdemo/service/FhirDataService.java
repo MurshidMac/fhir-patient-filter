@@ -40,6 +40,7 @@ public class FhirDataService {
 
     /**
      * Re-stock the database with FHIR DSTU3 values from the supplied server
+     *
      * @throws FHIRException
      */
     public void populate() throws FHIRException {
@@ -132,9 +133,10 @@ public class FhirDataService {
 
     /**
      * Get a bundle of data of the given type matching the criteria and count.
-     * @param client Client object used to execute the query
-     * @param count No. of entries in the bundle
-     * @param type Type of resource to retrieve and return
+     *
+     * @param client    Client object used to execute the query
+     * @param count     No. of entries in the bundle
+     * @param type      Type of resource to retrieve and return
      * @param criterion Criteria to retrieve the data
      * @return bundle of resources of type.
      */
