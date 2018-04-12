@@ -9,13 +9,4 @@ export interface Encounter {
   startPeriod: Date
   reason?: string
   patient: Patient
-  observations: Observation
-  _links: {
-    observations: {
-      href: string
-    }
-    patient: {
-      href: string
-    }
-  }
 }

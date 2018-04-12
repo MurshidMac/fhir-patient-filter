@@ -13,14 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Stack;
-
 @Service
 public class FhirDataService {
 
     private final PatientRepository patientRepository;
     private final ObservationRepository observationRepository;
     private final EncounterRepository encounterRepository;
+    IGenericClient client;
     private FhirContext fhirContext = FhirContext.forDstu3();
     @Value("${fhir.server.url}")
     private String server;
@@ -45,7 +44,7 @@ public class FhirDataService {
      */
     public void populate() throws FHIRException {
         Bundle patients;
-        IGenericClient client = fhirContext.newRestfulGenericClient(server);
+        client = fhirContext.newRestfulGenericClient(server);
 
         // Retrieve patients
         patients = getData(client, patientCount, Patient.class, null);
@@ -71,15 +70,15 @@ public class FhirDataService {
                 }
             }
             System.out.println(fhirPatient.getId());
-            patientRepository.save(patient);
+            System.out.println(patient);
+            patientRepository.save(patient).subscribe(this::saveEncounters);
         }
 
+    }
+
+    private void saveEncounters(com.example.fhirdemo.model.Patient patient) {
         // Retrieve encounters for each patient
         Bundle encounterBundle = getData(client, encounterCount * patientCount, Encounter.class, null);
-        int counter = 1;
-        Iterable<com.example.fhirdemo.model.Patient> allPatients = patientRepository.findAll();
-        Stack<com.example.fhirdemo.model.Patient> patientStack = new Stack<>();
-        allPatients.forEach(patientStack::push);
         for (Bundle.BundleEntryComponent entryComponent : encounterBundle.getEntry()) {
             Encounter fhirEncounter = (Encounter) entryComponent.getResource();
             com.example.fhirdemo.model.Encounter encounter =
@@ -89,23 +88,15 @@ public class FhirDataService {
                             fhirEncounter.getStatus(),
                             fhirEncounter.getTypeFirstRep().getText(),
                             fhirEncounter.getPeriod().getStart(),
-                            fhirEncounter.getReasonFirstRep().getText()
+                            fhirEncounter.getReasonFirstRep().getText(),
+                            patient
                     );
-            encounter.setPatient(patientStack.peek());
-            encounterRepository.save(encounter);
-            counter++;
-            if (counter >= 10) {
-                counter = 0;
-                if (patientStack.size() > 1) patientStack.pop();
-            }
+            encounterRepository.save(encounter).subscribe(e -> saveObservations(e, patient));
         }
+    }
 
-        // Retrieve observations for each encounter
+    private void saveObservations(com.example.fhirdemo.model.Encounter encounter, com.example.fhirdemo.model.Patient patient) {
         Bundle observationBundle = getData(client, observationCount * encounterCount * patientCount, Observation.class, null);
-        counter = 1;
-        Iterable<com.example.fhirdemo.model.Encounter> allEncounters = encounterRepository.findAll();
-        Stack<com.example.fhirdemo.model.Encounter> encounterStack = new Stack<>();
-        allEncounters.forEach(encounterStack::push);
         for (Bundle.BundleEntryComponent entryComponent : observationBundle.getEntry()) {
             Observation fhirObservation = (Observation) entryComponent.getResource();
             com.example.fhirdemo.model.Observation observation =
@@ -113,22 +104,23 @@ public class FhirDataService {
                             fhirObservation.getIdElement().getIdPart(),
                             fhirObservation.getId(),
                             fhirObservation.getStatus(),
-                            null
+                            null,
+                            patient,
+                            encounter
                     );
-            if (fhirObservation.getEffective() instanceof Period) {
-                observation.setEffectiveStartPeriod(fhirObservation.getEffectivePeriod().getStart());
-            } else {
-                observation.setEffectiveStartPeriod(fhirObservation.getEffectiveDateTimeType().getValue());
-            }
-            observation.setEncounter(encounterStack.peek());
-            observationRepository.save(observation);
-            counter++;
-            if (counter >= 10) {
-                counter = 0;
-                if (encounterStack.size() > 1) encounterStack.pop();
-            }
-        }
+            try {
+                if (fhirObservation.getEffective() instanceof Period) {
+                    observation.setEffectiveStartPeriod(fhirObservation.getEffectivePeriod().getStart());
 
+                } else {
+                    observation.setEffectiveStartPeriod(fhirObservation.getEffectiveDateTimeType().getValue());
+                }
+            } catch (FHIRException e) {
+                e.printStackTrace();
+            }
+            System.out.println(observation);
+            observationRepository.save(observation).subscribe();
+        }
     }
 
     /**

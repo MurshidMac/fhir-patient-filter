@@ -2,6 +2,7 @@ import { Encounter } from './encounter';
 import { Gender } from './gender.enum';
 
 export interface Patient {
+  id: string
   fullId: string
   name?: string
   active: boolean
@@ -9,13 +10,4 @@ export interface Patient {
   birthDate?: Date
   deceased: boolean
   deceasedOn?: Date
-  encounters: Encounter[]
-  _links: {
-    patient: {
-      href: string
-    }
-    encounters: {
-      href: string
-    }
-  }
 }
