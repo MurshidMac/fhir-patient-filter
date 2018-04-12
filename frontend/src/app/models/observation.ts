@@ -1,4 +1,5 @@
 import { Encounter } from './encounter';
+import { Patient } from './patient';
 
 export interface Observation {
   id: string
@@ -6,4 +7,5 @@ export interface Observation {
   status: string
   effectiveStartPeriod: Date
   encounter: Encounter
+  patient: Patient
 }

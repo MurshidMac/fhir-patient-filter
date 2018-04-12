@@ -10,4 +10,5 @@ export interface Patient {
   birthDate?: Date
   deceased: boolean
   deceasedOn?: Date
+  encounters?: Encounter[]
 }

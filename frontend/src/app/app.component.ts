@@ -56,11 +56,10 @@ export class AppComponent {
 
   getEncounters() {
     this.patients.map(patient => {
-      let url = new URL(patient._links.encounters.href);
-      this.appService.getEncounters(url.toString().replace(url.host, url.host + '/api'))
+      this.appService.getEncounters(patient.id)
         .subscribe(
           data => {
-            patient.encounters = data['_embedded']['encounters'];
+            patient.encounters = data;
           },
           err => this.snackBar.open(err, '', {
             duration: 3000
@@ -70,11 +69,10 @@ export class AppComponent {
   }
 
   getObservations(encounter: Encounter, element) {
-    let url = new URL(encounter._links.observations.href);
-    this.appService.getObservations(url.toString().replace(url.host, url.host + '/api'))
+    this.appService.getObservations(encounter.id)
       .subscribe(
         data => {
-          element.observations = data['_embedded']['observations'];
+          element.observations = data;
           this.table.renderRows();
         },
         err => this.snackBar.open(err, '', {

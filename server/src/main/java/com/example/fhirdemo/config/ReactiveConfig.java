@@ -36,17 +36,17 @@ public class ReactiveConfig {
     RouterFunction<ServerResponse> patientRoute(PatientHandler patientHandler) {
         return RouterFunctions.route(RequestPredicates.GET("/patients"),
                 request -> patientHandler.getAll())
-                .andRoute(RequestPredicates.GET("/patient/search/name"),
+                .andRoute(RequestPredicates.GET("/patients/search/name"),
                         patientHandler::getAllByName)
-                .andRoute(RequestPredicates.GET("/patient/search/active"),
+                .andRoute(RequestPredicates.GET("/patients/search/active"),
                         patientHandler::getAllByActive)
-                .andRoute(RequestPredicates.GET("/patient/search/gender"),
+                .andRoute(RequestPredicates.GET("/patients/search/gender"),
                         patientHandler::getAllByGender)
-                .andRoute(RequestPredicates.GET("/patient/search/deceased"),
+                .andRoute(RequestPredicates.GET("/patients/search/deceased"),
                         patientHandler::getAllByDeceased)
-                .andRoute(RequestPredicates.GET("/patient/search/deceasedOn"),
+                .andRoute(RequestPredicates.GET("/patients/search/deceasedOn"),
                         patientHandler::getAllByDeceasedOn)
-                .andRoute(RequestPredicates.GET("/patient/search/birthDate"),
+                .andRoute(RequestPredicates.GET("/patients/search/birthDate"),
                         patientHandler::getAllByBirthDate);
     }
 

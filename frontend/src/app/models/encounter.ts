@@ -9,4 +9,5 @@ export interface Encounter {
   startPeriod: Date
   reason?: string
   patient: Patient
+  observations?: Observation[]
 }

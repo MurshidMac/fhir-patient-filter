@@ -1,6 +1,6 @@
 package com.example.fhirdemo.handler;
 
-import com.example.fhirdemo.service.FhirDataService;
+import com.example.fhirdemo.service.FHIRDataService;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class CoreHandler {
 
-    private final FhirDataService dataService;
+    private final FHIRDataService dataService;
 
     public Mono<ServerResponse> populate() {
         try {
