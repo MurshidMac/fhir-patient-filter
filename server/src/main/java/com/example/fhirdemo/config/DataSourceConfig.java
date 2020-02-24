@@ -14,7 +14,8 @@ import javax.sql.DataSource;
 @EnableJpaRepositories(basePackages = "com.example.fhirdemo.repository")
 public class DataSourceConfig {
 
-    @Bean
+    //@Bean
+	@Bean
     public DataSource dataSource() {
         EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
 

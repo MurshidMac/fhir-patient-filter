@@ -59,10 +59,6 @@
             <artifactId>spring-boot-starter-data-rest</artifactId>
         </dependency>
         <dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-        <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-structures-dstu3</artifactId>
             <version>${hapi.version}</version>
@@ -77,16 +73,7 @@
             <artifactId>hapi-fhir-client</artifactId>
             <version>${hapi.version}</version>
         </dependency>
-		<dependency>
-    		<groupId>org.hibernate</groupId>
-    		<artifactId>hibernate-core</artifactId>
-    		<version>4.1.4.Final</version>
-		</dependency>
-		<dependency>
-    		<groupId>org.hibernate</groupId>
-    		<artifactId>hibernate-entitymanager</artifactId>
-    		<version>5.2.3.Final</version>
-		</dependency>
+
     </dependencies>
 
     <build>

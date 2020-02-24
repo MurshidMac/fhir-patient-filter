@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Stack;
 
-@Service
+@Service("FhirDataService")
 public class FhirDataService {
 
     private final PatientRepository patientRepository;
